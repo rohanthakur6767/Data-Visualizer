@@ -16,14 +16,14 @@ st.set_page_config(
 st.title('📊 Data Visualizer')
 
 # Get the working directory
-working_dir = os.path.dirname(os.path.abspath(__file__))
+working_dir = os.getcwd()  # Use current working directory
 
 # Specify the folder where CSV files are stored
 folder_path = os.path.join(working_dir, 'Data')
 
 # Check if the folder exists
 if not os.path.exists(folder_path):
-    st.warning(f"⚠️ Folder not found: {folder_path}")
+    st.warning(f"⚠️ Folder not found: `{folder_path}`. Please upload a file.")
     files = []
 else:
     files = [f for f in os.listdir(folder_path) if f.endswith('.csv')]
@@ -40,16 +40,15 @@ if uploaded_file:
         df = pd.read_csv(uploaded_file)
         st.success("✅ File uploaded successfully!")
 
-# File selection dropdown
-selected_file = st.selectbox('📁 Select a file', files, index=None)
-
-# Handle selected file
-if selected_file:
-    with st.spinner('Loading data...'):
-        time.sleep(1)
-        file_path = os.path.join(folder_path, selected_file)
-        df = pd.read_csv(file_path)
-        st.success(f"✅ Loaded `{selected_file}`")
+# File selection dropdown (only show if files exist)
+if files:
+    selected_file = st.selectbox('📁 Select a file', files)
+    if selected_file:
+        with st.spinner('Loading data...'):
+            time.sleep(1)
+            file_path = os.path.join(folder_path, selected_file)
+            df = pd.read_csv(file_path)
+            st.success(f"✅ Loaded `{selected_file}`")
 
 if df is not None:
     # Show data preview
@@ -99,4 +98,3 @@ if df is not None:
 
         st.pyplot(fig)
         st.success("🎉 Plot generated successfully!")
-
