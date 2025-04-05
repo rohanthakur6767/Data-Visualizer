@@ -13,7 +13,7 @@ st.set_page_config(page_title='Data Visualizer',
 # Title
 st.title('📊  Data Visualizer')
 
-working_dir = os.path.dirname(os.path.abspath(__file__))
+#working_dir = os.path.dirname(os.path.abspath(__file__))
 
 # Specify the folder where your CSV files are located
 folder_path = os.path.join(os.path.dirname(__file__), 'Data')
