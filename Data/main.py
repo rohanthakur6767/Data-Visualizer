@@ -4,44 +4,61 @@ import os
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-st.set_page_config(page_title='Data Visualizer', layout='centered', page_icon='📊')
+# Set the page config
+st.set_page_config(page_title='Data Visualizer',
+                   layout='centered',
+                   page_icon='📊')
 
-st.title('📊 Data Visualizer')
 
-# Define the folder path relative to the script
+# Title
+st.title('📊  Data Visualizer')
+
+working_dir = os.path.dirname(os.path.abspath(__file__))
+
+# Specify the folder where your CSV files are located
 folder_path = os.path.join(os.path.dirname(__file__), 'Data')
 
-# Check if the folder exists
+
+# List all files in the folder
 if not os.path.exists(folder_path):
     st.error(f"Folder not found: {folder_path}")
-    files = []
 else:
     files = [f for f in os.listdir(folder_path) if f.endswith('.csv')]
 
-# Option to upload a CSV file
 uploaded_file = st.file_uploader("Upload a CSV file", type=["csv"])
-
 if uploaded_file:
     df = pd.read_csv(uploaded_file)
-    selected_file = "Uploaded File"
-else:
-    selected_file = st.selectbox('Select a file', files, index=None)
-    if selected_file:
-        file_path = os.path.join(folder_path, selected_file)
-        df = pd.read_csv(file_path)
 
-if selected_file or uploaded_file:
-    st.write(df.head())
+# Dropdown to select a file
+selected_file = st.selectbox('Select a file', files, index=None)
+
+if selected_file:
+    # Construct the full path to the file
+    file_path = os.path.join(folder_path, selected_file)
+
+    # Read the selected CSV file
+    df = pd.read_csv(file_path)
+
+    col1, col2 = st.columns(2)
 
     columns = df.columns.tolist()
 
-    x_axis = st.selectbox('Select the X-axis', options=columns+["None"])
-    y_axis = st.selectbox('Select the Y-axis', options=columns+["None"])
+    with col1:
+        st.write("")
+        st.write(df.head())
 
-    plot_list = ['Line Plot', 'Bar Chart', 'Scatter Plot', 'Distribution Plot', 'Count Plot']
-    plot_type = st.selectbox('Select the type of plot', options=plot_list)
+    with col2:
+        # Allow the user to select columns for plotting
+        x_axis = st.selectbox('Select the X-axis', options=columns+["None"])
+        y_axis = st.selectbox('Select the Y-axis', options=columns+["None"])
 
+        plot_list = ['Line Plot', 'Bar Chart', 'Scatter Plot', 'Distribution Plot', 'Count Plot']
+        # Allow the user to select the type of plot
+        plot_type = st.selectbox('Select the type of plot', options=plot_list)
+
+    # Generate the plot based on user selection
     if st.button('Generate Plot'):
+
         fig, ax = plt.subplots(figsize=(6, 4))
 
         if plot_type == 'Line Plot':
@@ -57,8 +74,15 @@ if selected_file or uploaded_file:
             sns.countplot(x=df[x_axis], ax=ax)
             y_axis = 'Count'
 
+        # Adjust label sizes
+        ax.tick_params(axis='x', labelsize=10)  # Adjust x-axis label size
+        ax.tick_params(axis='y', labelsize=10)  # Adjust y-axis label size
+
+        # Adjust title and axis labels with a smaller font size
         plt.title(f'{plot_type} of {y_axis} vs {x_axis}', fontsize=12)
         plt.xlabel(x_axis, fontsize=10)
         plt.ylabel(y_axis, fontsize=10)
+
+        # Show the results
 
         st.pyplot(fig)
