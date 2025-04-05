@@ -3,66 +3,78 @@ import pandas as pd
 import os
 import matplotlib.pyplot as plt
 import seaborn as sns
+import time
 
 # Set the page config
-st.set_page_config(page_title='Data Visualizer',
-                   layout='centered',
-                   page_icon='📊')
+st.set_page_config(
+    page_title='📊 Data Visualizer',
+    layout='centered',
+    page_icon='📊'
+)
 
 # Title
 st.title('📊 Data Visualizer')
 
-# Get current working directory
-working_dir = os.getcwd()  # This works better in Streamlit Cloud
+# Get the working directory
+working_dir = os.path.dirname(os.path.abspath(__file__))
 
-# Specify the folder where CSV files should be (if running locally)
+# Specify the folder where CSV files are stored
 folder_path = os.path.join(working_dir, 'Data')
 
-# Initialize files list
-files = []
-
-# Check if folder exists and list CSV files
-if os.path.exists(folder_path):
-    files = [f for f in os.listdir(folder_path) if f.endswith('.csv')]
+# Check if the folder exists
+if not os.path.exists(folder_path):
+    st.warning(f"⚠️ Folder not found: {folder_path}")
+    files = []
 else:
-    st.warning(f"⚠️ Folder not found: {folder_path}\nUpload a CSV file instead.")
+    files = [f for f in os.listdir(folder_path) if f.endswith('.csv')]
 
-# Upload a CSV file
+# File uploader
 uploaded_file = st.file_uploader("📂 Upload a CSV file", type=["csv"])
 
-# Initialize DataFrame
-df = None
+df = None  # Initialize dataframe
 
-# Load data from uploaded file or selected local file
+# Handle uploaded file
 if uploaded_file:
-    df = pd.read_csv(uploaded_file)
-    selected_file = "Uploaded File"
-elif files:
-    selected_file = st.selectbox('📁 Select a file from local folder', files, index=None)
-    if selected_file:
+    with st.spinner('Loading file...'):
+        time.sleep(1)  # Simulating load time
+        df = pd.read_csv(uploaded_file)
+        st.success("✅ File uploaded successfully!")
+
+# File selection dropdown
+selected_file = st.selectbox('📁 Select a file', files, index=None)
+
+# Handle selected file
+if selected_file:
+    with st.spinner('Loading data...'):
+        time.sleep(1)
         file_path = os.path.join(folder_path, selected_file)
         df = pd.read_csv(file_path)
+        st.success(f"✅ Loaded `{selected_file}`")
 
-# Display DataFrame and plotting options if data is loaded
 if df is not None:
-    col1, col2 = st.columns(2)
+    # Show data preview
+    st.subheader("🔍 Data Preview")
+    st.write(df.head())
 
+    # Show data statistics
+    st.subheader("📊 Data Statistics")
+    st.write(df.describe())
+
+    # Column selection for visualization
     columns = df.columns.tolist()
+    x_axis = st.selectbox('📌 Select X-axis', options=columns + ["None"])
+    y_axis = st.selectbox('📌 Select Y-axis', options=columns + ["None"])
 
-    with col1:
-        st.write("### Data Preview")
-        st.write(df.head())
+    plot_list = ['Line Plot', 'Bar Chart', 'Scatter Plot', 'Distribution Plot', 'Count Plot']
+    plot_type = st.selectbox('📈 Select the type of plot', options=plot_list)
 
-    with col2:
-        st.write("### Plot Configuration")
-        x_axis = st.selectbox('📊 Select X-axis', options=columns)
-        y_axis = st.selectbox('📊 Select Y-axis', options=columns)
+    # Generate the plot with animation
+    if st.button('🚀 Generate Plot'):
+        progress_bar = st.progress(0)
+        for i in range(100):
+            time.sleep(0.01)
+            progress_bar.progress(i + 1)
 
-        plot_list = ['Line Plot', 'Bar Chart', 'Scatter Plot', 'Distribution Plot', 'Count Plot']
-        plot_type = st.selectbox('📌 Select Plot Type', options=plot_list)
-
-    # Generate the plot
-    if st.button('📈 Generate Plot'):
         fig, ax = plt.subplots(figsize=(6, 4))
 
         if plot_type == 'Line Plot':
@@ -85,5 +97,6 @@ if df is not None:
         plt.xlabel(x_axis, fontsize=10)
         plt.ylabel(y_axis, fontsize=10)
 
-        # Show the results
         st.pyplot(fig)
+        st.success("🎉 Plot generated successfully!")
+
