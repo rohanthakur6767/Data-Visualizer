@@ -16,7 +16,7 @@ st.title('📊 Data Visualizer')
 working_dir = os.path.dirname(os.path.abspath(__file__))
 
 # Specify the folder where your CSV files are located
-folder_path = os.path.join(working_dir, 'Data')
+folder_path = os.path.join(working_dir, 'Data-Visualizer/Data')
 
 # Initialize files list
 files = []
