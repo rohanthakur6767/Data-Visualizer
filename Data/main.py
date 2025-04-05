@@ -9,56 +9,60 @@ st.set_page_config(page_title='Data Visualizer',
                    layout='centered',
                    page_icon='📊')
 
-
 # Title
-st.title('📊  Data Visualizer')
+st.title('📊 Data Visualizer')
 
+# Get the working directory
 working_dir = os.path.dirname(os.path.abspath(__file__))
 
 # Specify the folder where your CSV files are located
-folder_path = os.path.join(os.path.dirname(__file__), 'Data')
+folder_path = os.path.join(working_dir, 'Data')
 
+# Initialize files list
+files = []
 
-# List all files in the folder
-if not os.path.exists(folder_path):
-    st.error(f"Folder not found: {folder_path}")
-else:
+# Check if folder exists
+if os.path.exists(folder_path):
     files = [f for f in os.listdir(folder_path) if f.endswith('.csv')]
+else:
+    st.error(f"⚠️ Folder not found: {folder_path}")
 
-uploaded_file = st.file_uploader("Upload a CSV file", type=["csv"])
+# Upload a CSV file
+uploaded_file = st.file_uploader("📂 Upload a CSV file", type=["csv"])
+
+# Initialize DataFrame
+df = None
+
+# Load the uploaded file
 if uploaded_file:
     df = pd.read_csv(uploaded_file)
+    selected_file = "Uploaded File"
+else:
+    selected_file = st.selectbox('📁 Select a file', files, index=None)
+    if selected_file:
+        file_path = os.path.join(folder_path, selected_file)
+        df = pd.read_csv(file_path)
 
-# Dropdown to select a file
-selected_file = st.selectbox('Select a file', files, index=None)
-
-if selected_file:
-    # Construct the full path to the file
-    file_path = os.path.join(folder_path, selected_file)
-
-    # Read the selected CSV file
-    df = pd.read_csv(file_path)
-
+# Display DataFrame and controls only if a file is selected or uploaded
+if df is not None:
     col1, col2 = st.columns(2)
-
+    
     columns = df.columns.tolist()
-
+    
     with col1:
-        st.write("")
+        st.write("### Data Preview")
         st.write(df.head())
 
     with col2:
-        # Allow the user to select columns for plotting
-        x_axis = st.selectbox('Select the X-axis', options=columns+["None"])
-        y_axis = st.selectbox('Select the Y-axis', options=columns+["None"])
+        st.write("### Plot Configuration")
+        x_axis = st.selectbox('📊 Select X-axis', options=columns)
+        y_axis = st.selectbox('📊 Select Y-axis', options=columns)
 
         plot_list = ['Line Plot', 'Bar Chart', 'Scatter Plot', 'Distribution Plot', 'Count Plot']
-        # Allow the user to select the type of plot
-        plot_type = st.selectbox('Select the type of plot', options=plot_list)
+        plot_type = st.selectbox('📌 Select Plot Type', options=plot_list)
 
-    # Generate the plot based on user selection
-    if st.button('Generate Plot'):
-
+    # Generate the plot
+    if st.button('📈 Generate Plot'):
         fig, ax = plt.subplots(figsize=(6, 4))
 
         if plot_type == 'Line Plot':
@@ -75,14 +79,13 @@ if selected_file:
             y_axis = 'Count'
 
         # Adjust label sizes
-        ax.tick_params(axis='x', labelsize=10)  # Adjust x-axis label size
-        ax.tick_params(axis='y', labelsize=10)  # Adjust y-axis label size
+        ax.tick_params(axis='x', labelsize=10)
+        ax.tick_params(axis='y', labelsize=10)
 
-        # Adjust title and axis labels with a smaller font size
+        # Adjust title and axis labels
         plt.title(f'{plot_type} of {y_axis} vs {x_axis}', fontsize=12)
         plt.xlabel(x_axis, fontsize=10)
         plt.ylabel(y_axis, fontsize=10)
 
         # Show the results
-
         st.pyplot(fig)
